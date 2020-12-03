@@ -1,7 +1,6 @@
 import openslide
 import os
 import pickle
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -30,12 +29,15 @@ from datetime import datetime
 import json
 from tune_functions import IMbags_single_slide,Attention_lenet,train,test_coarse,test_detail
 import argparse
+torch.backends.cudnn.benchmark=True
 
 parser = argparse.ArgumentParser(description="Please specify the test patient ID")
 parser.add_argument("test_patient", type=int, help = "Please specify the test patient ID")
 parser.add_argument("mode", help = "Please specify uniform or multiscale mode")
 parser.add_argument("architecture", help = "Please specify lenet or unet architecture")
+parser.add_argument("gpu", help = "Choose a GPU")
 args_io = parser.parse_args()
+os.environ['CUDA_VISIBLE_DEVICES'] = args_io.gpu
 
 if args_io.mode == "uniform":
     if args_io.architecture == "lenet":
@@ -192,7 +194,7 @@ for i in Args_tune['initial_lr']:
             Grid_result['gamma'] = k
             Grid_result['start_time'] = datetime.now()
             print(i,j,k)
-            Patients_list = cross_validation(train_patients,df_meta,args,args_tune=args_tune,epochs = [1])
+            Patients_list = cross_validation(train_patients,df_meta,args,args_tune=args_tune,epochs = [10,20,30,40,50])
             for fold in range(len(Patients_list)):
                 Grid_result['fold'+str(fold+1)] = Patients_list[fold]
             Grid_result['end_time'] = datetime.now()
